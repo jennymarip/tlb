@@ -50,5 +50,59 @@ module tlb #(
     output                      r_d1   ,
     output                      r_v1
 );
+// tlb table
+reg [18:0] tlb_vpn2 [TLBNUM-1:0];
+reg [ 7:0] tlb_asid [TLBNUM-1:0];
+reg        tlb_g    [TLBNUM-1:0];
+reg [19:0] tlb_pfn0 [TLBNUM-1:0];
+reg [ 2:0] tlb_c0   [TLBNUM-1:0];
+reg        tlb_d0   [TLBNUM-1:0];
+reg        tlb_v0   [TLBNUM-1:0];
+reg [19:0] tlb_pfn1 [TLBNUM-1:0];
+reg [ 2:0] tlb_c1   [TLBNUM-1:0];
+reg        tlb_d1   [TLBNUM-1:0];
+reg        tlb_v1   [TLBNUM-1:0];
+
+// write
+always @ (posedge clk) begin
+    if (we) begin
+        tlb_vpn2[w_index] <= w_vpn2;
+        tlb_asid[w_index] <= w_asid;
+        tlb_g   [w_index] <= w_g   ;
+        tlb_pfn0[w_index] <= w_pfn0;
+        tlb_c0  [w_index] <= w_c0  ;
+        tlb_d0  [w_index] <= w_d0  ;
+        tlb_v0  [w_index] <= w_v0  ;
+        tlb_pfn1[w_index] <= w_pfn1;
+        tlb_c1  [w_index] <= w_c1  ;
+        tlb_d1  [w_index] <= w_d1  ;
+        tlb_v1  [w_index] <= w_v1  ;
+    end
+end
+
+// read
+assign r_vpn2 = tlb_vpn2[r_index];
+assign r_asid = tlb_asid[r_index];
+assign r_g    = tlb_g   [r_index];
+assign r_pfn0 = tlb_pfn0[r_index];
+assign r_c0   = tlb_c0  [r_index];
+assign r_d0   = tlb_d0  [r_index];
+assign r_v0   = tlb_v0  [r_index];
+assign r_pfn1 = tlb_pfn1[r_index];
+assign r_c1   = tlb_c1  [r_index];
+assign r_d1   = tlb_d1  [r_index];
+assign r_v1   = tlb_v1  [r_index];
+
+// search
+wire [TLBNUM-1:0] match0;
+wire [TLBNUM-1:0] match1;
+genvar i;
+generate
+    for(i=0;i<TLBNUM;i++)
+    begin: set_match
+        assign match0[i] = (s0_vpn2==tlb_vpn2[i]) && ((s0_asid==tlb_asid[i])||tlb_g[i]);
+        assign match1[i] = (s1_vpn2==tlb_vpn2[i]) && ((s1_asid==tlb_asid[i])||tlb_g[i]);
+    end
+endgenerate
 
 endmodule
