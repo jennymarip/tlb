@@ -1,3 +1,24 @@
+module encoder(
+    input  [15:0] in,
+    output [ 3:0] out
+);
+assign out = ({4{in[0 ]}} & 4'd0 )
+           | ({4{in[1 ]}} & 4'd1 )
+           | ({4{in[2 ]}} & 4'd2 )
+           | ({4{in[3 ]}} & 4'd3 )
+           | ({4{in[4 ]}} & 4'd4 )
+           | ({4{in[5 ]}} & 4'd5 )
+           | ({4{in[6 ]}} & 4'd6 )
+           | ({4{in[7 ]}} & 4'd7 )
+           | ({4{in[8 ]}} & 4'd8 )
+           | ({4{in[9 ]}} & 4'd9 )
+           | ({4{in[10]}} & 4'd10)
+           | ({4{in[11]}} & 4'd11)
+           | ({4{in[12]}} & 4'd12)
+           | ({4{in[13]}} & 4'd13)
+           | ({4{in[14]}} & 4'd14)
+           | ({4{in[15]}} & 4'd15); 
+endmodule
 module tlb #(
     parameter TLBNUM = 16
 )(
@@ -96,13 +117,27 @@ assign r_v1   = tlb_v1  [r_index];
 // search
 wire [TLBNUM-1:0] match0;
 wire [TLBNUM-1:0] match1;
+assign s0_found = (match0 != 16'b0);
+assign s1_found = (match1 != 16'b0);
+
 genvar i;
 generate
-    for(i=0;i<TLBNUM;i++)
+    for(i=0;i<TLBNUM;i=i+1)
     begin: set_match
         assign match0[i] = (s0_vpn2==tlb_vpn2[i]) && ((s0_asid==tlb_asid[i])||tlb_g[i]);
         assign match1[i] = (s1_vpn2==tlb_vpn2[i]) && ((s1_asid==tlb_asid[i])||tlb_g[i]);
     end
 endgenerate
-
+encoder enc0(
+    .in  (match0  ),
+    .out (s0_index)
+);
+encoder enc1(
+    .in  (match1  ),
+    .out (s1_index)
+);
+assign {s0_pfn, s0_c, s0_d, s0_v} = s0_odd_page ? {tlb_pfn1[s0_index], tlb_c1[s0_index], tlb_d1[s0_index], tlb_v1[s0_index]} :
+                                                  {tlb_pfn0[s0_index], tlb_c0[s0_index], tlb_d0[s0_index], tlb_v0[s0_index]};
+assign {s1_pfn, s1_c, s1_d, s1_v} = s1_odd_page ? {tlb_pfn1[s1_index], tlb_c1[s1_index], tlb_d1[s1_index], tlb_v1[s1_index]} :
+                                                  {tlb_pfn0[s1_index], tlb_c0[s1_index], tlb_d0[s1_index], tlb_v0[s1_index]};
 endmodule
